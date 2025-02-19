@@ -47,6 +47,9 @@ RUN wget https://gitlab.com/kalilinux/packages/wordlists/-/raw/kali/master/rocky
 RUN mkdir -p /usr/local/wordlists && \
     mv /home/kasm-user/Desktop/rockyou.txt /usr/local/wordlists/rockyou.txt
 
+COPY kasm-hashcat-readme /home/kasm-user/Desktop/README.md
+RUN chown 1000:0 /home/kasm-user/Desktop/README.md
+
 # Clean up
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

@@ -1,0 +1,82 @@
+# Wireless Password Cracking Tools Guide
+
+This container includes tools for wireless password cracking, including the Adj-Noun Generator and hcxkeys suite.
+
+## Using the Adj-Noun Generator
+The Adj-Noun Generator is pre-installed and available as the adj command. It generates wordlists by combining adjectives and nouns with optional digits.
+
+### Basic Usage
+```bash
+# Basic usage (outputs adjective+noun+1digit and adjective+noun+3digits)
+adj
+
+# Pipe to hashcat
+adj | hashcat -m 22000 hash.hc22000
+
+# Different digit combinations
+adj -0  # No digits
+adj -1  # 1 digit
+adj -2  # 2 digits
+adj -3  # 3 digits
+
+# Use expanded wordlist
+adj -full
+```
+
+## Using hcxkeys Tools
+The hcxkeys suite provides tools for generating plainmasterkeys (PMKs) for use with hashcat's WPA/WPA2 cracking. Two main tools are included: wlangenpmk (CPU-based) and wlangenpmkocl (GPU-based).
+
+### wlangenpmk (CPU-based PMK Generation)
+Generate PMKs using your CPU for a specific ESSID and password list.
+
+```bash
+# Basic syntax
+wlangenpmk -e <ESSID> -f <wordlist> -o <output_file>
+
+# Example using rockyou wordlist
+wlangenpmk -e "MyWiFiNetwork" -f /usr/local/wordlists/rockyou.txt -o pmk_output.txt
+
+# Generate PMKs with specific password length range (8-63 characters)
+wlangenpmk -e "MyWiFiNetwork" -f /usr/local/wordlists/rockyou.txt -o pmk_output.txt -l 8 -L 63
+```
+
+### wlangenpmkocl (GPU-based PMK Generation)
+Generate PMKs using your GPU for faster processing.
+
+```bash
+# Basic syntax
+wlangenpmkocl -e <ESSID> -f <wordlist> -o <output_file>
+
+# Example using rockyou wordlist with GPU acceleration
+wlangenpmkocl -e "MyWiFiNetwork" -f /usr/local/wordlists/rockyou.txt -o pmk_output.txt
+
+# List available OpenCL platforms and devices
+wlangenpmkocl -P
+
+# Specify OpenCL platform and device
+wlangenpmkocl -p 0 -d 0 -e "MyWiFiNetwork" -f /usr/local/wordlists/rockyou.txt -o pmk_output.txt
+```
+
+## Hashcat Usage Examples
+```bash
+# WPA/WPA2 Password Cracking
+hashcat -m 22000 hash.hc22000 /usr/local/wordlists/rockyou.txt
+
+# Generate Custom Wordlist and Crack
+adj -full | hashcat -m 22000 hash.hc22000
+
+# Use generated PMKs with hashcat
+hashcat -m 22001 hash.hc22000 pmk_output.txt
+
+# Combine adj-noun generator with PMK generation
+adj | wlangenpmk -e "MyWiFiNetwork" -o pmk_output.txt
+```
+
+## Common Options for hcxkeys Tools
+- `-e <essid>`: Specify the target network ESSID
+- `-f <wordlist>`: Input wordlist file
+- `-o <output>`: Output file for generated PMKs
+- `-h`: Show help message
+- `-v`: Show version information
+
+Note: PMK generation can be computationally intensive. GPU-based generation (wlangenpmkocl) is recommended for larger wordlists.
