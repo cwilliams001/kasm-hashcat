@@ -1,6 +1,5 @@
 FROM kasmweb/core-ubuntu-jammy:1.16.0
 USER root
-
 ENV HOME /home/kasm-default-profile
 ENV STARTUPDIR /dockerstartup
 ENV INST_SCRIPTS $STARTUPDIR/install
@@ -8,14 +7,25 @@ ENV NVIDIA_DRIVER_CAPABILITIES=all
 WORKDIR $HOME
 
 ######### Customize Container Here ###########
-
 RUN apt-get update && apt-get install -y \
     hashcat \
     nvidia-cuda-toolkit \
     unzip \
     dconf-cli \
     build-essential \
-    wget 
+    wget \
+    libssl-dev \
+    ocl-icd-opencl-dev \
+    opencl-headers \
+    git
+
+# Install hcxkeys
+RUN git clone https://github.com/ZerBea/hcxkeys.git && \
+    cd hcxkeys && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf hcxkeys
 
 RUN mkdir -p /etc/OpenCL/vendors && \
     echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
@@ -40,13 +50,11 @@ RUN mkdir -p /usr/local/wordlists && \
 # Clean up
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-######### End Customizations ###########
 
+######### End Customizations ###########
 RUN chown 1000:0 $HOME
 RUN $STARTUPDIR/set_user_permission.sh $HOME
-
 ENV HOME /home/kasm-user
 WORKDIR $HOME
 RUN mkdir -p $HOME && chown -R 1000:0 $HOME
-
 USER 1000
